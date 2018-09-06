@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans  
+                     http://www.springframework.org/schema/beans/spring-beans.xsd  
+                     http://www.springframework.org/schema/tx  
+                     http://www.springframework.org/schema/tx/spring-tx.xsd   
+                     http://www.springframework.org/schema/context  
+                     http://www.springframework.org/schema/context/spring-context.xsd  
+                     http://www.springframework.org/schema/aop  
+                     http://www.springframework.org/schema/aop/spring-aop.xsd ">
+	<context:property-placeholder location="classpath:springConfig/db.properties" />
+	<context:component-scan base-package="com.han.service,com.han.dao"></context:component-scan>
+	<tx:annotation-driven transaction-manager="dataSourceTransactionManager" />
+	<bean name="dataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName">
+			<value>${driver}</value>
+		</property>
+		<property name="url">
+			<value>${url}</value>
+		</property>
+		<property name="username">
+			<value>${name}</value>
+		</property>
+		<property name="password">
+			<value>${password}</value>
+		</property>
+	</bean>
+
+	<bean name="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate"
+		autowire="byType">
+	</bean>
+	
+	<!-- 1.配置事务管理器 -->
+ 	<bean name="dataSourceTransactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean> 
+	<!-- 2.配置事务的属性 -->
+ 	<tx:advice id="txAdvice" transaction-manager="dataSourceTransactionManager">
+		<tx:attributes>
+			<tx:method name="init*" 
+			propagation="REQUIRED" 
+			isolation="READ_COMMITTED"
+			timeout="2"/>
+			<tx:method name="get*" propagation="NEVER" isolation="DEFAULT"/>
+		</tx:attributes>
+	</tx:advice> 
+	
+	<!-- 3.事务切入点，关联点配置 -->
+ 	<aop:config>
+		<aop:pointcut expression="execution(* com.han.service..*.*(..))" id="tranPointcut"/>
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="tranPointcut"/>
+	</aop:config> 
+	
+	
+
+</beans>
